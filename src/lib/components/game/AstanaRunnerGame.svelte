@@ -25,6 +25,12 @@
 	let isShielded = $state(false);
 	let shieldTimer = $state(0);
 
+	// Power-up States
+	let isMagnetActive = $state(false);
+	let magnetTimer = $state(0);
+	let isTurboActive = $state(false);
+	let turboTimer = $state(0);
+
 	let score = $state(0);
 	let samsasCollected = $state(0);
 	let coinsCollected = $state(0);
@@ -86,6 +92,10 @@
 		isSliding = false;
 		isShielded = false;
 		shieldTimer = 0;
+		isMagnetActive = false;
+		magnetTimer = 0;
+		isTurboActive = false;
+		turboTimer = 0;
 	}
 
 	function triggerGameOver() {
@@ -100,8 +110,9 @@
 	function updateGameLoop(delta: number) {
 		if (gameState !== 'PLAYING') return;
 
-		// Increase score & speed
-		score += Math.floor(delta * gameSpeed);
+		// Increase score & speed (bonus speed when Turbo is active)
+		const activeSpeed = isTurboActive ? gameSpeed * 1.6 : gameSpeed;
+		score += Math.floor(delta * activeSpeed);
 		gameSpeed += delta * 0.4;
 
 		// Manage shield countdown
@@ -113,11 +124,38 @@
 			}
 		}
 
-		// Spawn new obstacles & collectibles (Tateshka, Samsa, Barrier, Coin)
+		// Manage Magnet countdown
+		if (isMagnetActive) {
+			magnetTimer -= delta;
+			if (magnetTimer <= 0) {
+				isMagnetActive = false;
+				magnetTimer = 0;
+			}
+		}
+
+		// Manage Turbo countdown
+		if (isTurboActive) {
+			turboTimer -= delta;
+			if (turboTimer <= 0) {
+				isTurboActive = false;
+				turboTimer = 0;
+			}
+		}
+
+		// Magnet Effect: Pull nearby coins & Samsas towards player's lane
+		if (isMagnetActive) {
+			for (const obs of obstacles) {
+				if ((obs.type === 'COIN' || obs.type === 'SAMSA') && obs.z > -40 && obs.z < 10) {
+					obs.lane = playerLane;
+				}
+			}
+		}
+
+		// Spawn new obstacles & powerups
 		spawnTimer += delta * (gameSpeed * 0.04);
 		if (spawnTimer > 1.8) {
 			spawnTimer = 0;
-			const types: ObstacleType[] = ['TATESHKA', 'SAMSA', 'BARRIER', 'COIN', 'COIN'];
+			const types: ObstacleType[] = ['TATESHKA', 'SAMSA', 'BARRIER', 'COIN', 'COIN', 'MAGNET', 'TURBO'];
 			const randomType = types[Math.floor(Math.random() * types.length)];
 			const randomLane = Math.floor(Math.random() * 3);
 
@@ -144,23 +182,33 @@
 			// Collision threshold
 			if (distZ < 1.2 && distX < 1.1) {
 				if (obs.type === 'SAMSA') {
-					// Collect Samsa bonus points!
 					samsasCollected += 1;
 					score += 250;
 					soundFx.playPickup();
-					obs.z = 999; // Despawn
+					obs.z = 999;
 				} else if (obs.type === 'COIN') {
-					// Collect Gold Coin!
 					coinsCollected += 1;
 					score += 100;
 					soundFx.playPickup();
-					obs.z = 999; // Despawn
+					obs.z = 999;
+				} else if (obs.type === 'MAGNET') {
+					isMagnetActive = true;
+					magnetTimer = 7.0;
+					soundFx.playShield();
+					obs.z = 999;
+				} else if (obs.type === 'TURBO') {
+					isTurboActive = true;
+					turboTimer = 4.0;
+					soundFx.playShield();
+					obs.z = 999;
+				} else if (isTurboActive) {
+					// Invincible during Turbo Flight!
+					obs.z = 999;
 				} else if (obs.type === 'BARRIER' && (isJumping || isSliding)) {
 					// Cleared barrier via jump or slide
 				} else {
 					// Hit obstacle
 					if (isShielded) {
-						// Shield absorbs hit
 						isShielded = false;
 						obs.z = 999;
 						soundFx.playShield();
@@ -191,50 +239,65 @@
 	<!-- 3D Canvas Viewport -->
 	<Canvas>
 		<!-- Camera setup for Subway Surfers perspective -->
-		<T.PerspectiveCamera makeDefault position={[0, 4.5, 6]} fov={55} />
+		<T.PerspectiveCamera makeDefault position={[0, isTurboActive ? 6.5 : 4.5, isTurboActive ? 8 : 6]} fov={55} />
 
-		<RoadEnvironment speed={gameState === 'PLAYING' ? gameSpeed : 0} />
+		<RoadEnvironment speed={gameState === 'PLAYING' ? (isTurboActive ? gameSpeed * 1.6 : gameSpeed) : 0} />
 
 		<PlayerCharacter
 			lane={playerLane}
-			{isJumping}
+			isJumping={isJumping || isTurboActive}
 			{isSliding}
-			{isShielded}
+			isShielded={isShielded || isMagnetActive || isTurboActive}
 			onJumpEnd={() => (isJumping = false)}
 			onSlideEnd={() => (isSliding = false)}
 		/>
 
 		<Obstacles
 			{obstacles}
-			speed={gameState === 'PLAYING' ? gameSpeed : 0}
+			speed={gameState === 'PLAYING' ? (isTurboActive ? gameSpeed * 1.6 : gameSpeed) : 0}
 			onCollision={() => {}}
 		/>
 
 		<GameTaskRunner onUpdate={updateGameLoop} />
 	</Canvas>
 
-	<!-- HUD Header (Score, Samsas & Coins Count) -->
+	<!-- HUD Header (Score, Samsas, Coins & Active Powerups) -->
 	<div class="pointer-events-none absolute top-4 left-4 right-4 flex items-center justify-between z-20">
-		<div class="flex items-center gap-2.5">
-			<div class="rounded-2xl border border-zinc-800 bg-zinc-950/80 px-3.5 py-2 backdrop-blur-md">
-				<span class="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">Score</span>
-				<span class="text-lg font-black tracking-wider text-cyan-400">{score}</span>
+		<div class="flex items-center gap-2">
+			<div class="rounded-2xl border border-zinc-800 bg-zinc-950/80 px-3 py-1.5 backdrop-blur-md">
+				<span class="text-[9px] font-bold uppercase tracking-wider text-zinc-400 block">Score</span>
+				<span class="text-base font-black tracking-wider text-cyan-400">{score}</span>
 			</div>
-			<div class="rounded-2xl border border-zinc-800 bg-zinc-950/80 px-3.5 py-2 backdrop-blur-md">
-				<span class="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">Samsas 🥐</span>
-				<span class="text-lg font-black tracking-wider text-amber-400">{samsasCollected}</span>
+			<div class="rounded-2xl border border-zinc-800 bg-zinc-950/80 px-3 py-1.5 backdrop-blur-md">
+				<span class="text-[9px] font-bold uppercase tracking-wider text-zinc-400 block">Samsas 🥐</span>
+				<span class="text-base font-black tracking-wider text-amber-400">{samsasCollected}</span>
 			</div>
-			<div class="rounded-2xl border border-zinc-800 bg-zinc-950/80 px-3.5 py-2 backdrop-blur-md">
-				<span class="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">Coins 🪙</span>
-				<span class="text-lg font-black tracking-wider text-yellow-400">{coinsCollected}</span>
+			<div class="rounded-2xl border border-zinc-800 bg-zinc-950/80 px-3 py-1.5 backdrop-blur-md">
+				<span class="text-[9px] font-bold uppercase tracking-wider text-zinc-400 block">Coins 🪙</span>
+				<span class="text-base font-black tracking-wider text-yellow-400">{coinsCollected}</span>
 			</div>
 		</div>
 
-		{#if isShielded}
-			<div class="rounded-2xl border border-cyan-500/50 bg-cyan-950/80 px-4 py-2 text-xs font-bold text-cyan-300 backdrop-blur-md animate-pulse">
-				🛡️ SHIELD ACTIVE ({shieldTimer.toFixed(1)}s)
-			</div>
-		{/if}
+		<!-- Powerup Status Badges -->
+		<div class="flex gap-2">
+			{#if isTurboActive}
+				<div class="rounded-2xl border border-sky-400/50 bg-sky-950/80 px-3 py-1.5 text-xs font-bold text-sky-300 backdrop-blur-md animate-pulse">
+					🚀 TURBO ({turboTimer.toFixed(1)}s)
+				</div>
+			{/if}
+
+			{#if isMagnetActive}
+				<div class="rounded-2xl border border-red-500/50 bg-red-950/80 px-3 py-1.5 text-xs font-bold text-red-300 backdrop-blur-md animate-pulse">
+					🧲 MAGNET ({magnetTimer.toFixed(1)}s)
+				</div>
+			{/if}
+
+			{#if isShielded}
+				<div class="rounded-2xl border border-cyan-500/50 bg-cyan-950/80 px-3 py-1.5 text-xs font-bold text-cyan-300 backdrop-blur-md animate-pulse">
+					🛡️ SHIELD ({shieldTimer.toFixed(1)}s)
+				</div>
+			{/if}
+		</div>
 	</div>
 
 	<!-- On-screen Controls Overlay for Touch / Desktop -->
@@ -261,12 +324,14 @@
 				</h1>
 				<p class="text-xs text-zinc-400 mb-6">Проспект Мангилик Ел • Свайпай и Уворачивайся!</p>
 
-				<!-- Controls Guide -->
+				<!-- Controls & Items Guide -->
 				<div class="grid grid-cols-2 gap-3 mb-8 text-left text-xs bg-zinc-900/60 border border-zinc-800 p-4 rounded-2xl">
 					<div>⬆️ <b>Свайп Вверх:</b> Прыжок</div>
 					<div>⬇️ <b>Свайп Вниз:</b> Подкат</div>
-					<div>⬅️➡️ <b>Свайп Вбок:</b> Смена полосы</div>
-					<div>👆 <b>Двойной Тап:</b> Супер-Щит</div>
+					<div>⬅️➡️ <b>Свайп Вбок:</b> Полоса</div>
+					<div>👆 <b>Двойной Тап:</b> Щит</div>
+					<div>🧲 <b>Магнит:</b> Тянет самсу</div>
+					<div>🚀 <b>Турбо:</b> Полет и скорость</div>
 				</div>
 
 				<button
@@ -295,6 +360,10 @@
 					<div>
 						<span class="text-[10px] uppercase text-zinc-500 block">Самса 🥐</span>
 						<span class="text-2xl font-black text-amber-400">{samsasCollected}</span>
+					</div>
+					<div>
+						<span class="text-[10px] uppercase text-zinc-500 block">Монеты 🪙</span>
+						<span class="text-2xl font-black text-yellow-400">{coinsCollected}</span>
 					</div>
 				</div>
 

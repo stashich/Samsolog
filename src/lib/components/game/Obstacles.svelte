@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { T, useTask } from '@threlte/core';
 
-	export type ObstacleType = 'TATESHKA' | 'SAMSA' | 'BARRIER' | 'COIN';
+	export type ObstacleType = 'TATESHKA' | 'SAMSA' | 'BARRIER' | 'COIN' | 'MAGNET' | 'TURBO';
 
 	export interface ObstacleData {
 		id: number;
@@ -107,7 +107,40 @@
 			<T.MeshStandardMaterial color="#fec10d" metalness={0.9} roughness={0.1} emissive="#f59e0b" emissiveIntensity={1.2} />
 		</T.Mesh>
 
-	<!-- 4. Road Barrier / Construction Cone -->
+	<!-- 4. Magnet Power-Up Item (🧲) -->
+	{:else if obs.type === 'MAGNET'}
+		<T.Group position={[lanePositions[obs.lane], 1.1, obs.z]} rotation.y={itemRotation}>
+			<T.Mesh castShadow>
+				<T.TorusGeometry args={[0.45, 0.12, 16, 24, Math.PI]} />
+				<T.MeshStandardMaterial color="#ef4444" metalness={0.8} roughness={0.2} emissive="#dc2626" emissiveIntensity={0.8} />
+			</T.Mesh>
+			<!-- Magnet Tips -->
+			<T.Mesh position={[-0.45, -0.2, 0]}>
+				<T.BoxGeometry args={[0.24, 0.24, 0.24]} />
+				<T.MeshStandardMaterial color="#ffffff" emissive="#ffffff" emissiveIntensity={0.8} />
+			</T.Mesh>
+			<T.Mesh position={[0.45, -0.2, 0]}>
+				<T.BoxGeometry args={[0.24, 0.24, 0.24]} />
+				<T.MeshStandardMaterial color="#ffffff" emissive="#ffffff" emissiveIntensity={0.8} />
+			</T.Mesh>
+		</T.Group>
+
+	<!-- 5. Turbo Energy Boost Item (🚀) -->
+	{:else if obs.type === 'TURBO'}
+		<T.Group position={[lanePositions[obs.lane], 1.1, obs.z]} rotation.y={itemRotation}>
+			<!-- Energy Canister -->
+			<T.Mesh castShadow>
+				<T.CylinderGeometry args={[0.3, 0.3, 0.8, 16]} />
+				<T.MeshStandardMaterial color="#00afec" metalness={0.8} roughness={0.2} emissive="#0284c7" emissiveIntensity={1.2} />
+			</T.Mesh>
+			<!-- Jet Flames -->
+			<T.Mesh position={[0, -0.5, 0]}>
+				<T.ConeGeometry args={[0.25, 0.4, 8]} />
+				<T.MeshStandardMaterial color="#f59e0b" emissive="#f59e0b" emissiveIntensity={3.0} />
+			</T.Mesh>
+		</T.Group>
+
+	<!-- 6. Road Barrier / Construction Cone -->
 	{:else if obs.type === 'BARRIER'}
 		<T.Group position={[lanePositions[obs.lane], 0.45, obs.z]}>
 			<T.Mesh castShadow>
