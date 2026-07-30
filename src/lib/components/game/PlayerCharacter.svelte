@@ -26,30 +26,40 @@
 	let vy = $state(0);
 	let slideTimer = $state(0);
 
-	// Running animation wiggle angle
+	// Rotational leaning & animation angles
+	let leanZ = $state(0);
+	let jumpRotationX = $state(0);
 	let runCycle = $state(0);
 
 	useTask((delta) => {
-		// 1. Smooth Lane Interpolation (Lerp)
+		// 1. Smooth Lane Interpolation & Lean Angle
 		const targetX = lanePositions[lane] ?? 0;
-		currentX += (targetX - currentX) * Math.min(delta * 18, 1);
+		const diffX = targetX - currentX;
+		currentX += diffX * Math.min(delta * 18, 1);
+		
+		// Lean character into the direction of lane switch
+		leanZ = -diffX * 0.15;
 
-		// 2. Vertical Jump Physics
+		// 2. Vertical Jump Physics & Flip Animation
 		if (isJumping) {
 			if (currentY === 0 && vy === 0) {
-				vy = 12; // Initial jump impulse
+				vy = 13; // Jump impulse
 			}
 			currentY += vy * delta;
-			vy -= 32 * delta; // Gravity
+			vy -= 34 * delta; // Gravity
+
+			// Forward flip rotation during jump
+			jumpRotationX += delta * 7;
 
 			if (currentY <= 0) {
 				currentY = 0;
 				vy = 0;
+				jumpRotationX = 0;
 				onJumpEnd();
 			}
 		}
 
-		// 3. Slide Timer
+		// 3. Slide Timer & Crouch
 		if (isSliding) {
 			slideTimer += delta;
 			if (slideTimer > 0.7) {
@@ -59,50 +69,91 @@
 		}
 
 		// 4. Running Animation Cycle
-		runCycle += delta * 12;
+		runCycle += delta * 14;
 	});
 </script>
 
-<!-- Player Group Position -->
-<T.Group position={[currentX, currentY + (isSliding ? 0.4 : 1.0), 0]}>
-	<!-- Body Torso -->
+<!-- Player Group Position & Leaning Rotations -->
+<T.Group 
+	position={[currentX, currentY + (isSliding ? 0.35 : 0.95), 0]}
+	rotation.z={leanZ}
+	rotation.x={isJumping ? jumpRotationX : (isSliding ? 0.4 : 0)}
+>
+	<!-- Torso / Kazakh Flag Blue Runner Jacket -->
 	<T.Mesh
-		scale={[isSliding ? 1.1 : 0.8, isSliding ? 0.4 : 1.0, isSliding ? 1.4 : 0.6]}
+		scale={[isSliding ? 1.1 : 0.85, isSliding ? 0.45 : 1.0, isSliding ? 1.4 : 0.65]}
 		castShadow
 	>
 		<T.BoxGeometry args={[0.8, 1.2, 0.6]} />
-		<T.MeshStandardMaterial color="#06b6d4" roughness={0.3} metalness={0.2} />
+		<T.MeshStandardMaterial color="#00afec" roughness={0.3} metalness={0.2} />
 	</T.Mesh>
 
-	<!-- Head -->
+	<!-- Golden Sun Badge on Chest -->
+	<T.Mesh position={[0, isSliding ? 0.2 : 0.2, 0.35]} scale={[0.3, 0.3, 0.05]}>
+		<T.CylinderGeometry args={[0.4, 0.4, 0.1]} />
+		<T.MeshStandardMaterial color="#fec10d" emissive="#fec10d" emissiveIntensity={0.6} />
+	</T.Mesh>
+
+	<!-- Head & Stylized Visor -->
 	<T.Mesh position={[0, isSliding ? 0.3 : 0.9, 0]} castShadow>
 		<T.SphereGeometry args={[0.35]} />
-		<T.MeshStandardMaterial color="#fcd34d" roughness={0.4} />
+		<T.MeshStandardMaterial color="#fde047" roughness={0.4} />
 	</T.Mesh>
 
-	<!-- Cap / Helmet -->
-	<T.Mesh position={[0, isSliding ? 0.55 : 1.15, 0.05]} castShadow>
-		<T.BoxGeometry args={[0.45, 0.15, 0.55]} />
+	<!-- Cap / Visor -->
+	<T.Mesh position={[0, isSliding ? 0.55 : 1.15, 0.1]} castShadow>
+		<T.BoxGeometry args={[0.5, 0.12, 0.6]} />
 		<T.MeshStandardMaterial color="#ec4899" />
 	</T.Mesh>
 
-	<!-- Legs (Animated wiggling when running) -->
-	{#if !isSliding && !isJumping}
-		<T.Mesh position={[-0.25, -0.7, Math.sin(runCycle) * 0.2]}>
-			<T.BoxGeometry args={[0.25, 0.6, 0.25]} />
-			<T.MeshStandardMaterial color="#1e1b4b" />
+	<!-- Animated Arms (Swinging while running) -->
+	{#if !isSliding}
+		<T.Mesh position={[-0.55, 0.1, Math.sin(runCycle) * 0.3]} rotation.x={Math.sin(runCycle) * 0.4}>
+			<T.BoxGeometry args={[0.2, 0.7, 0.2]} />
+			<T.MeshStandardMaterial color="#00afec" />
 		</T.Mesh>
-		<T.Mesh position={[0.25, -0.7, -Math.sin(runCycle) * 0.2]}>
-			<T.BoxGeometry args={[0.25, 0.6, 0.25]} />
-			<T.MeshStandardMaterial color="#1e1b4b" />
+		<T.Mesh position={[0.55, 0.1, -Math.sin(runCycle) * 0.3]} rotation.x={-Math.sin(runCycle) * 0.4}>
+			<T.BoxGeometry args={[0.2, 0.7, 0.2]} />
+			<T.MeshStandardMaterial color="#00afec" />
 		</T.Mesh>
 	{/if}
 
-	<!-- Double-Tap Protective Energy Shield Aura -->
+	<!-- Animated Legs (Swinging sneakers) -->
+	{#if !isSliding && !isJumping}
+		<T.Group position={[-0.25, -0.75, Math.sin(runCycle) * 0.25]}>
+			<T.Mesh castShadow>
+				<T.BoxGeometry args={[0.25, 0.65, 0.25]} />
+				<T.MeshStandardMaterial color="#1e1b4b" />
+			</T.Mesh>
+			<!-- White Sneaker -->
+			<T.Mesh position={[0, -0.35, 0.1]}>
+				<T.BoxGeometry args={[0.28, 0.18, 0.45]} />
+				<T.MeshStandardMaterial color="#ffffff" />
+			</T.Mesh>
+		</T.Group>
+
+		<T.Group position={[0.25, -0.75, -Math.sin(runCycle) * 0.25]}>
+			<T.Mesh castShadow>
+				<T.BoxGeometry args={[0.25, 0.65, 0.25]} />
+				<T.MeshStandardMaterial color="#1e1b4b" />
+			</T.Mesh>
+			<!-- White Sneaker -->
+			<T.Mesh position={[0, -0.35, 0.1]}>
+				<T.BoxGeometry args={[0.28, 0.18, 0.45]} />
+				<T.MeshStandardMaterial color="#ffffff" />
+			</T.Mesh>
+		</T.Group>
+	{/if}
+
+	<!-- Double-Tap Energy Shield Ring & Glow Shield Sphere -->
 	{#if isShielded}
 		<T.Mesh rotation.x={Math.PI / 2}>
-			<T.TorusGeometry args={[1.2, 0.06, 16, 60]} />
-			<T.MeshStandardMaterial color="#38bdf8" emissive="#38bdf8" emissiveIntensity={3.0} />
+			<T.TorusGeometry args={[1.35, 0.08, 16, 60]} />
+			<T.MeshStandardMaterial color="#38bdf8" emissive="#38bdf8" emissiveIntensity={3.5} />
+		</T.Mesh>
+		<T.Mesh>
+			<T.SphereGeometry args={[1.4, 16, 16]} />
+			<T.MeshStandardMaterial color="#38bdf8" transparent opacity={0.25} emissive="#0284c7" emissiveIntensity={0.8} />
 		</T.Mesh>
 	{/if}
 </T.Group>
