@@ -1,0 +1,22 @@
+@import 'tailwindcss';
+
+@layer base {
+	*, *::before, *::after {
+		-webkit-user-select: none;
+		-moz-user-select: none;
+		-ms-user-select: none;
+		user-select: none;
+		-webkit-tap-highlight-color: transparent;
+		-webkit-touch-callout: none;
+		-webkit-user-drag: none;
+	}
+
+	html, body {
+		min-height: 100%;
+		width: 100%;
+		overflow-x: hidden;
+		overflow-y: auto;
+		touch-action: pan-y;
+		-webkit-text-size-adjust: 100%;
+	}
+}
