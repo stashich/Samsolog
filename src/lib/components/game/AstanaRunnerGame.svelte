@@ -37,6 +37,11 @@
 	let gameSpeed = $state(26);
 	let playerNameInput = $state('');
 
+	// Offline LocalStorage Persistence States
+	let bestScore = $state(0);
+	let isNewHighscore = $state(false);
+	let totalCoinsSaved = $state(0);
+
 	// Obstacles List
 	let obstacles = $state<ObstacleData[]>([]);
 	let nextObstacleId = 1;
@@ -96,11 +101,31 @@
 		magnetTimer = 0;
 		isTurboActive = false;
 		turboTimer = 0;
+		isNewHighscore = false;
 	}
 
 	function triggerGameOver() {
 		gameState = 'GAME_OVER';
 		soundFx.playCrash();
+
+		// Check and save Personal Best Highscore locally
+		if (score > bestScore) {
+			bestScore = score;
+			isNewHighscore = true;
+			if (typeof window !== 'undefined') {
+				localStorage.setItem('astana_runner_best_score', score.toString());
+			}
+		}
+
+		// Update total accumulated coins in LocalStorage
+		totalCoinsSaved += coinsCollected;
+		if (typeof window !== 'undefined') {
+			localStorage.setItem('astana_runner_total_coins', totalCoinsSaved.toString());
+			if (playerNameInput) {
+				localStorage.setItem('astana_runner_player_name', playerNameInput);
+			}
+		}
+
 		if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
 			window.navigator.vibrate([100, 50, 100]);
 		}
@@ -222,6 +247,18 @@
 	}
 
 	onMount(() => {
+		// Load LocalStorage Highscores and Player Name on mount
+		if (typeof window !== 'undefined') {
+			const savedBest = localStorage.getItem('astana_runner_best_score');
+			if (savedBest) bestScore = parseInt(savedBest, 10);
+
+			const savedCoins = localStorage.getItem('astana_runner_total_coins');
+			if (savedCoins) totalCoinsSaved = parseInt(savedCoins, 10);
+
+			const savedName = localStorage.getItem('astana_runner_player_name');
+			if (savedName) playerNameInput = savedName;
+		}
+
 		if (gameContainerEl) {
 			const listener = createGestureListener(gameContainerEl, {
 				onAction: handleGameAction
@@ -319,13 +356,20 @@
 	{#if gameState === 'START'}
 		<div class="absolute inset-0 z-30 flex items-center justify-center bg-zinc-950/85 p-6 backdrop-blur-md">
 			<div class="max-w-md w-full text-center">
-				<h1 class="text-3xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-cyan-400 to-indigo-400 tracking-tight mb-2">
+				<h1 class="text-3xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-cyan-400 to-indigo-400 tracking-tight mb-1">
 					АСТАНА РАHЕР 3D
 				</h1>
-				<p class="text-xs text-zinc-400 mb-6">Проспект Мангилик Ел • Свайпай и Уворачивайся!</p>
+				<p class="text-xs text-zinc-400 mb-4">Проспект Мангилик Ел • Свайпай и Уворачивайся!</p>
+
+				<!-- Personal Best Banner -->
+				{#if bestScore > 0}
+					<div class="mb-4 inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-4 py-1.5 text-xs font-bold text-amber-300">
+						🏆 Личный Рекорд: {bestScore} pts
+					</div>
+				{/if}
 
 				<!-- Controls & Items Guide -->
-				<div class="grid grid-cols-2 gap-3 mb-8 text-left text-xs bg-zinc-900/60 border border-zinc-800 p-4 rounded-2xl">
+				<div class="grid grid-cols-2 gap-3 mb-6 text-left text-xs bg-zinc-900/60 border border-zinc-800 p-4 rounded-2xl">
 					<div>⬆️ <b>Свайп Вверх:</b> Прыжок</div>
 					<div>⬇️ <b>Свайп Вниз:</b> Подкат</div>
 					<div>⬅️➡️ <b>Свайп Вбок:</b> Полоса</div>
@@ -348,8 +392,14 @@
 	{#if gameState === 'GAME_OVER'}
 		<div class="absolute inset-0 z-30 flex items-center justify-center bg-zinc-950/90 p-6 backdrop-blur-md">
 			<div class="max-w-md w-full text-center">
+				{#if isNewHighscore}
+					<div class="mb-2 inline-flex items-center gap-2 rounded-full border border-emerald-500/40 bg-emerald-500/20 px-4 py-1.5 text-xs font-black text-emerald-300 animate-bounce">
+						🎉 НОВЫЙ РЕКОРД! 🎉
+					</div>
+				{/if}
+
 				<h2 class="text-3xl font-black text-rose-500 mb-1">ЗАБЕГ ОКОНЧЕН!</h2>
-				<p class="text-xs text-zinc-400 mb-6">Вы столкнулись с препятствием на Мангилик Ел</p>
+				<p class="text-xs text-zinc-400 mb-4">Вы столкнулись с препятствием на Мангилик Ел</p>
 
 				<!-- Score Summary -->
 				<div class="flex justify-around bg-zinc-900/80 border border-zinc-800 p-4 rounded-2xl mb-6">
