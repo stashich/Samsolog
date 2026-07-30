@@ -1,11 +1,12 @@
 <script lang="ts">
-	import { Canvas, T, useTask } from '@threlte/core';
+	import { Canvas, T } from '@threlte/core';
 	import { onMount } from 'svelte';
 	import RoadEnvironment from './RoadEnvironment.svelte';
 	import PlayerCharacter from './PlayerCharacter.svelte';
 	import Obstacles, { type ObstacleData, type ObstacleType } from './Obstacles.svelte';
 	import GameTaskRunner from './GameTaskRunner.svelte';
 	import { createGestureListener, type GameAction } from '$lib/utils/gestures';
+	import { soundFx } from '$lib/utils/audio';
 	import { enhance } from '$app/forms';
 
 	let { scores = [], form = null } = $props<{
@@ -18,7 +19,7 @@
 	let gameState = $state<GameState>('START');
 
 	// Game Parameters
-	let playerLane = $state(1); // 0 = Left, 1 = Center, 2 = Right
+	let playerLane = $state(1); // 0 = Left (-2.2), 1 = Center (0), 2 = Right (2.2)
 	let isJumping = $state(false);
 	let isSliding = $state(false);
 	let isShielded = $state(false);
@@ -49,18 +50,25 @@
 				if (playerLane < 2) playerLane += 1;
 				break;
 			case 'JUMP':
-				if (!isJumping && !isSliding) isJumping = true;
+				if (!isJumping && !isSliding) {
+					isJumping = true;
+					soundFx.playJump();
+				}
 				break;
 			case 'SLIDE':
 				if (!isSliding) {
 					isSliding = true;
 					isJumping = false;
+					soundFx.playSlide();
 				}
 				break;
 			case 'DOUBLE_TAP':
 				// Activate Energy Shield Powerup
-				isShielded = true;
-				shieldTimer = 5.0; // Shield lasts 5 seconds
+				if (!isShielded) {
+					isShielded = true;
+					shieldTimer = 5.0; // Shield lasts 5 seconds
+					soundFx.playShield();
+				}
 				break;
 		}
 	}
@@ -80,6 +88,7 @@
 
 	function triggerGameOver() {
 		gameState = 'GAME_OVER';
+		soundFx.playCrash();
 		if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
 			window.navigator.vibrate([100, 50, 100]);
 		}
@@ -136,6 +145,7 @@
 					// Collect Samsa bonus points!
 					samsasCollected += 1;
 					score += 250;
+					soundFx.playPickup();
 					obs.z = 999; // Despawn
 				} else if (obs.type === 'BARRIER' && (isJumping || isSliding)) {
 					// Cleared barrier via jump or slide
@@ -145,6 +155,7 @@
 						// Shield absorbs hit
 						isShielded = false;
 						obs.z = 999;
+						soundFx.playShield();
 					} else {
 						triggerGameOver();
 						break;
