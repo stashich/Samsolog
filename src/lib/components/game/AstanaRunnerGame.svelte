@@ -27,6 +27,7 @@
 
 	let score = $state(0);
 	let samsasCollected = $state(0);
+	let coinsCollected = $state(0);
 	let gameSpeed = $state(26);
 	let playerNameInput = $state('');
 
@@ -78,6 +79,7 @@
 		playerLane = 1;
 		score = 0;
 		samsasCollected = 0;
+		coinsCollected = 0;
 		gameSpeed = 26;
 		obstacles = [];
 		isJumping = false;
@@ -111,11 +113,11 @@
 			}
 		}
 
-		// Spawn new obstacles
+		// Spawn new obstacles & collectibles (Tateshka, Samsa, Barrier, Coin)
 		spawnTimer += delta * (gameSpeed * 0.04);
-		if (spawnTimer > 2.2) {
+		if (spawnTimer > 1.8) {
 			spawnTimer = 0;
-			const types: ObstacleType[] = ['TATESHKA', 'SAMSA', 'BARRIER'];
+			const types: ObstacleType[] = ['TATESHKA', 'SAMSA', 'BARRIER', 'COIN', 'COIN'];
 			const randomType = types[Math.floor(Math.random() * types.length)];
 			const randomLane = Math.floor(Math.random() * 3);
 
@@ -145,6 +147,12 @@
 					// Collect Samsa bonus points!
 					samsasCollected += 1;
 					score += 250;
+					soundFx.playPickup();
+					obs.z = 999; // Despawn
+				} else if (obs.type === 'COIN') {
+					// Collect Gold Coin!
+					coinsCollected += 1;
+					score += 100;
 					soundFx.playPickup();
 					obs.z = 999; // Despawn
 				} else if (obs.type === 'BARRIER' && (isJumping || isSliding)) {
@@ -205,16 +213,20 @@
 		<GameTaskRunner onUpdate={updateGameLoop} />
 	</Canvas>
 
-	<!-- HUD Header (Score & Samsas Count) -->
+	<!-- HUD Header (Score, Samsas & Coins Count) -->
 	<div class="pointer-events-none absolute top-4 left-4 right-4 flex items-center justify-between z-20">
-		<div class="flex items-center gap-3">
-			<div class="rounded-2xl border border-zinc-800 bg-zinc-950/80 px-4 py-2 backdrop-blur-md">
+		<div class="flex items-center gap-2.5">
+			<div class="rounded-2xl border border-zinc-800 bg-zinc-950/80 px-3.5 py-2 backdrop-blur-md">
 				<span class="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">Score</span>
-				<span class="text-xl font-black tracking-wider text-cyan-400">{score}</span>
+				<span class="text-lg font-black tracking-wider text-cyan-400">{score}</span>
 			</div>
-			<div class="rounded-2xl border border-zinc-800 bg-zinc-950/80 px-4 py-2 backdrop-blur-md">
+			<div class="rounded-2xl border border-zinc-800 bg-zinc-950/80 px-3.5 py-2 backdrop-blur-md">
 				<span class="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">Samsas 🥐</span>
-				<span class="text-xl font-black tracking-wider text-amber-400">{samsasCollected}</span>
+				<span class="text-lg font-black tracking-wider text-amber-400">{samsasCollected}</span>
+			</div>
+			<div class="rounded-2xl border border-zinc-800 bg-zinc-950/80 px-3.5 py-2 backdrop-blur-md">
+				<span class="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">Coins 🪙</span>
+				<span class="text-lg font-black tracking-wider text-yellow-400">{coinsCollected}</span>
 			</div>
 		</div>
 
