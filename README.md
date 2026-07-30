@@ -1,42 +1,80 @@
-# sv
+# 🏃‍♂️ Astana Runner 3D: Mangilik El (Астана Ранер 3D)
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+Бесконечный 3D-ранер в стиле **Subway Surfers**, действие которого разворачивается на легендарном проспекте **Мангилик Ел** в Астане. Уворачивайтесь от переходящих дорогу Татешек, летящей из окон Самсы и городских препятствий!
 
-## Creating a project
+---
 
-If you're seeing this, you've probably already done this step. Congrats!
+## 🚀 Технологический стек
 
-```sh
-# create a new project
-npx sv create my-app
+- **Фреймворк:** [Svelte 5](https://svelte.dev/) (с архитектурой **Runes**: `$state`, `$derived`, `$props`, `$effect`)
+- **Язык:** [TypeScript](https://www.typescriptlang.org/)
+- **3D Графика:** [Threlte 8](https://threlte.xyz/) + [Three.js](https://threejs.org/) (WebGL движок)
+- **Стилизация:** [Tailwind CSS v4](https://tailwindcss.com/) (только утилитарные инлайн-классы)
+- **База данных:** [Drizzle ORM](https://orm.drizzle.team/) + [PostgreSQL](https://www.postgresql.org/) (Таблица лидеров и рекордов)
+- **PWA:** [@vite-pwa/sveltekit](https://vite-pwa-org.netlify.app/) (Офлайн-режим, установка на главный экран, манифест)
+- **Мобильный отладчик:** [Eruda](https://github.com/liriliri/eruda) (Динамическая консоль в dev-режиме)
+- **Сборщик:** [Vite](https://vite.dev/)
+
+---
+
+## 🎮 Управление в игре
+
+Игра спроектирована под сенсорные экраны смартфонов и поддерживает жествые свайпы:
+
+| Жест | Действие |
+| :--- | :--- |
+| ⬆️ **Свайп Вверх** | Прыжок через препятствие |
+| ⬇️ **Свайп Внизу** | Подкат / Проскальзывание |
+| ⬅️ **Свайп Влево** | Смена полосы влево |
+| ➡️ **Свайп Вправо** | Смена полосы вправо |
+| 👆 **Двойной Тап** | Активация супер-способности / Щита |
+
+---
+
+## 🚧 Препятствия
+
+1. 👵 **Татешка:** Переходит дорогу в самый неожиданный момент.
+2. 🥐 **Летящая Самса:** Вылетает из окон зданий вдоль проспекта.
+3. 🚧 **Дорожные барьеры и конусы:** Городские ремонтные работы на проспекте.
+
+---
+
+## 🛠️ Запуск проекта
+
+### 1. Установка зависимостей
+```bash
+npm install
 ```
 
-To recreate this project with the same configuration:
-
-```sh
-# recreate this project
-npx sv@0.16.6 create --template minimal --types ts --add tailwindcss="plugins:none" drizzle="database:postgresql+postgresql:postgres.js+docker:no" --no-download-check --install npm .
+### 2. Сервер разработки (доступный по Wi-Fi)
+```bash
+npm run dev -- --host
 ```
 
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+### 3. Проверка типов и кода
+```bash
+npm run check
 ```
 
-## Building
+### 4. Настройка PostgreSQL
+Укажите ваш URL подключения в файле `.env`:
+```env
+DATABASE_URL="postgres://postgres:postgres@localhost:5432/samsolog"
+```
 
-To create a production version of your app:
+Применение схемы к базе данных:
+```bash
+npm run db:push
+```
 
-```sh
+---
+
+## 📦 Сборка PWA
+
+```bash
+# Создание продакшн бандла
 npm run build
+
+# Предпросмотр локально
+npm run preview
 ```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
