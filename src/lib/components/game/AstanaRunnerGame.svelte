@@ -275,8 +275,13 @@
 >
 	<!-- 3D Canvas Viewport -->
 	<Canvas>
-		<!-- Camera setup for Subway Surfers perspective -->
-		<T.PerspectiveCamera makeDefault position={[0, isTurboActive ? 6.5 : 4.5, isTurboActive ? 8 : 6]} fov={55} />
+		<!-- Camera setup for Subway Surfers perspective (elevated & tilted down for full character visibility) -->
+		<T.PerspectiveCamera 
+			makeDefault 
+			position={[0, isTurboActive ? 7.5 : 5.4, isTurboActive ? 10.5 : 8.2]} 
+			rotation.x={-0.18}
+			fov={55} 
+		/>
 
 		<RoadEnvironment speed={gameState === 'PLAYING' ? (isTurboActive ? gameSpeed * 1.6 : gameSpeed) : 0} />
 
