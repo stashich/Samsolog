@@ -18,7 +18,6 @@
 		ctx1.fillStyle = '#0f172a';
 		ctx1.fillRect(0, 0, 512, 512);
 
-		// Draw illuminated windows grid
 		const cols = 8;
 		const rows = 16;
 		const w = 40;
@@ -53,13 +52,11 @@
 		ctx2.fillStyle = '#0284c7';
 		ctx2.fillRect(0, 0, 512, 512);
 
-		// Gold border frames
 		ctx2.strokeStyle = '#fec10d';
 		ctx2.lineWidth = 12;
 		ctx2.strokeRect(10, 10, 492, 492);
 		ctx2.strokeRect(30, 30, 452, 452);
 
-		// Ornamental Sun Motif
 		ctx2.fillStyle = '#fec10d';
 		ctx2.beginPath();
 		ctx2.arc(256, 256, 90, 0, Math.PI * 2);
@@ -89,7 +86,13 @@
 <T.AmbientLight intensity={0.7} />
 <T.HemisphereLight skyColor="#00afec" groundColor="#0f172a" intensity={1.2} />
 <T.DirectionalLight position={[12, 35, 10]} intensity={2.2} castShadow />
-<T.FogExp2 color="#09090b" density={0.008} />
+<T.FogExp2 color="#09090b" density={0.007} />
+
+<!-- Full Ground Underlay Plane (From Z = +100 to Z = -300) -->
+<T.Mesh position={[0, -0.02, -100]} rotation.x={-Math.PI / 2} receiveShadow>
+	<T.PlaneGeometry args={[120, 400]} />
+	<T.MeshStandardMaterial color="#0f172a" roughness={0.9} />
+</T.Mesh>
 
 <!-- Horizon Background Sky Backdrop -->
 <T.Mesh position={[0, 30, -170]}>
@@ -97,30 +100,30 @@
 	<T.MeshBasicMaterial color="#09090b" />
 </T.Mesh>
 
-<!-- Main 3-Lane Horizontal Asphalt Highway -->
+<!-- Main 3-Lane Horizontal Asphalt Highway (Length = 400) -->
 <T.Mesh position={[0, -0.01, -100]} rotation.x={-Math.PI / 2} receiveShadow>
-	<T.PlaneGeometry args={[10, 320]} />
+	<T.PlaneGeometry args={[10, 400]} />
 	<T.MeshStandardMaterial color="#1e1e24" roughness={0.7} metalness={0.1} />
 </T.Mesh>
 
 <!-- Glowing Kazakh Blue Neon Edge Strips -->
 <T.Mesh position={[-4.9, 0.005, -100]} rotation.x={-Math.PI / 2}>
-	<T.PlaneGeometry args={[0.3, 320]} />
+	<T.PlaneGeometry args={[0.3, 400]} />
 	<T.MeshStandardMaterial color="#00afec" emissive="#00afec" emissiveIntensity={1.8} />
 </T.Mesh>
 <T.Mesh position={[4.9, 0.005, -100]} rotation.x={-Math.PI / 2}>
-	<T.PlaneGeometry args={[0.3, 320]} />
+	<T.PlaneGeometry args={[0.3, 400]} />
 	<T.MeshStandardMaterial color="#00afec" emissive="#00afec" emissiveIntensity={1.8} />
 </T.Mesh>
 
 <!-- Glowing Dashed Yellow Lane Lines (Z Motion) -->
 {#each [-1.65, 1.65] as laneX}
-	{#each Array(16) as _, i}
+	{#each Array(18) as _, i}
 		<T.Mesh
 			position={[
 				laneX,
 				0.01,
-				((i * 15 + roadOffset) % 240) - 160
+				((i * 15 + roadOffset) % 270) - 180
 			]}
 			rotation.x={-Math.PI / 2}
 		>
@@ -138,19 +141,19 @@
 	</T.Mesh>
 {/each}
 
-<!-- Sidewalks (Left & Right) -->
+<!-- Sidewalks (Left & Right Length = 400) -->
 <T.Mesh position={[-6.6, 0.08, -100]} rotation.x={-Math.PI / 2}>
-	<T.PlaneGeometry args={[3.2, 320]} />
+	<T.PlaneGeometry args={[3.2, 400]} />
 	<T.MeshStandardMaterial color="#27272a" roughness={0.8} />
 </T.Mesh>
 <T.Mesh position={[6.6, 0.08, -100]} rotation.x={-Math.PI / 2}>
-	<T.PlaneGeometry args={[3.2, 320]} />
+	<T.PlaneGeometry args={[3.2, 400]} />
 	<T.MeshStandardMaterial color="#27272a" roughness={0.8} />
 </T.Mesh>
 
 <!-- Astana City Buildings with Procedural Illuminated Facades -->
-{#each Array(12) as _, i}
-	{@const zPos = ((i * 20 + roadOffset) % 240) - 160}
+{#each Array(14) as _, i}
+	{@const zPos = ((i * 20 + roadOffset) % 280) - 180}
 	
 	<!-- Left Skyscrapers (Illuminated Window Grid) -->
 	<T.Mesh position={[-12, 16, zPos]} castShadow>
