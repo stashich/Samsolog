@@ -8,7 +8,7 @@
 	const modernTexture = useTexture('/assets/facades/modern.jpg');
 	const kazakhTexture = useTexture('/assets/facades/kazakh.jpg');
 
-	// Road segment offset for seamless infinite loop towards horizon (-Z)
+	// Road segment offset for seamless infinite loop towards player (+Z)
 	let roadOffset = $state(0);
 	const segmentLength = 40;
 
@@ -44,14 +44,14 @@
 	<T.MeshStandardMaterial color="#00afec" emissive="#00afec" emissiveIntensity={0.6} />
 </T.Mesh>
 
-<!-- Dashed Yellow Lane Lines (Z Axis Motion) -->
+<!-- Dashed Yellow Lane Lines (Moving TOWARDS camera +Z) -->
 {#each [-1.65, 1.65] as laneX}
 	{#each Array(16) as _, i}
 		<T.Mesh
 			position={[
 				laneX,
 				0.01,
-				((i * 15 - roadOffset) % 240) - 160
+				((i * 15 + roadOffset) % 240) - 160
 			]}
 			rotation.x={-Math.PI / 2}
 		>
@@ -61,9 +61,9 @@
 	{/each}
 {/each}
 
-<!-- Forward Motion Speed Lines under Runner -->
+<!-- Forward Motion Speed Lines under Runner (Moving TOWARDS camera +Z) -->
 {#each Array(8) as _, i}
-	<T.Mesh position={[0, 0.008, ((i * 10 - roadOffset) % 80) - 20]}>
+	<T.Mesh position={[0, 0.008, ((i * 10 + roadOffset) % 80) - 20]}>
 		<T.PlaneGeometry args={[0.08, 2.5]} />
 		<T.MeshStandardMaterial color="#38bdf8" emissive="#38bdf8" emissiveIntensity={1.5} transparent opacity={0.4} />
 	</T.Mesh>
@@ -79,9 +79,9 @@
 	<T.MeshStandardMaterial color="#27272a" roughness={0.9} />
 </T.Mesh>
 
-<!-- Astana City Buildings with Real Facade Textures -->
+<!-- Astana City Buildings & Street Lamps (Moving TOWARDS camera +Z) -->
 {#each Array(12) as _, i}
-	{@const zPos = ((i * 20 - roadOffset) % 240) - 160}
+	{@const zPos = ((i * 20 + roadOffset) % 240) - 160}
 	
 	<!-- Left Buildings (Modern Glass Facade) -->
 	<T.Mesh position={[-12, 14, zPos]}>
