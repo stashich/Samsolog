@@ -287,9 +287,10 @@
 
 		<PlayerCharacter
 			lane={playerLane}
-			isJumping={isJumping || isTurboActive}
+			{isJumping}
 			{isSliding}
 			isShielded={isShielded || isMagnetActive || isTurboActive}
+			{isTurboActive}
 			onJumpEnd={() => (isJumping = false)}
 			onSlideEnd={() => (isSliding = false)}
 		/>
