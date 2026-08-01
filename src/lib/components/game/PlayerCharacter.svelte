@@ -166,12 +166,12 @@
 			<T.TorusGeometry args={[0.36, 0.04, 12, 24, Math.PI]} />
 			<T.MeshStandardMaterial color="#38bdf8" emissive="#38bdf8" emissiveIntensity={1.5} />
 		</T.Mesh>
-		<T.Mesh position={[-0.35, 0, 0]}>
-			<T.CylinderGeometry args={[0.12, 0.12, 0.08, 16]} rotation.z={Math.PI / 2} />
+		<T.Mesh position={[-0.35, 0, 0]} rotation.z={Math.PI / 2}>
+			<T.CylinderGeometry args={[0.12, 0.12, 0.08, 16]} />
 			<T.MeshStandardMaterial color="#38bdf8" emissive="#38bdf8" emissiveIntensity={2.0} />
 		</T.Mesh>
-		<T.Mesh position={[0.35, 0, 0]}>
-			<T.CylinderGeometry args={[0.12, 0.12, 0.08, 16]} rotation.z={Math.PI / 2} />
+		<T.Mesh position={[0.35, 0, 0]} rotation.z={Math.PI / 2}>
+			<T.CylinderGeometry args={[0.12, 0.12, 0.08, 16]} />
 			<T.MeshStandardMaterial color="#38bdf8" emissive="#38bdf8" emissiveIntensity={2.0} />
 		</T.Mesh>
 	</T.Group>
