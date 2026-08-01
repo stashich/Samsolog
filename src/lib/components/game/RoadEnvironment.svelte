@@ -1,7 +1,12 @@
 <script lang="ts">
 	import { T, useTask } from '@threlte/core';
+	import { useTexture } from '@threlte/extras';
 
 	let { speed = 25 } = $props<{ speed?: number }>();
+
+	// Load Astana building facade textures using Threlte extras
+	const modernTexture = useTexture('/assets/facades/modern.jpg');
+	const kazakhTexture = useTexture('/assets/facades/kazakh.jpg');
 
 	// Road segment offset for seamless infinite loop towards horizon (-Z)
 	let roadOffset = $state(0);
@@ -23,7 +28,7 @@
 	<T.MeshBasicMaterial color="#09090b" />
 </T.Mesh>
 
-<!-- Main 3-Lane Horizontal Asphalt Highway (XZ Plane, width = 10 along X, length = 320 along Z) -->
+<!-- Main 3-Lane Horizontal Asphalt Highway (XZ Plane) -->
 <T.Mesh position={[0, -0.01, -100]} rotation.x={-Math.PI / 2} receiveShadow>
 	<T.PlaneGeometry args={[10, 320]} />
 	<T.MeshStandardMaterial color="#18181b" roughness={0.8} />
@@ -56,6 +61,14 @@
 	{/each}
 {/each}
 
+<!-- Forward Motion Speed Lines under Runner -->
+{#each Array(8) as _, i}
+	<T.Mesh position={[0, 0.008, ((i * 10 - roadOffset) % 80) - 20]}>
+		<T.PlaneGeometry args={[0.08, 2.5]} />
+		<T.MeshStandardMaterial color="#38bdf8" emissive="#38bdf8" emissiveIntensity={1.5} transparent opacity={0.4} />
+	</T.Mesh>
+{/each}
+
 <!-- Sidewalks (Left & Right Horizontal Strips) -->
 <T.Mesh position={[-6.6, 0.08, -100]} rotation.x={-Math.PI / 2}>
 	<T.PlaneGeometry args={[3.2, 320]} />
@@ -66,20 +79,28 @@
 	<T.MeshStandardMaterial color="#27272a" roughness={0.9} />
 </T.Mesh>
 
-<!-- Astana City Buildings & Street Lamps along the sides -->
+<!-- Astana City Buildings with Real Facade Textures -->
 {#each Array(12) as _, i}
 	{@const zPos = ((i * 20 - roadOffset) % 240) - 160}
 	
-	<!-- Left Buildings (Mangilik El Skyscrapers) -->
+	<!-- Left Buildings (Modern Glass Facade) -->
 	<T.Mesh position={[-12, 14, zPos]}>
 		<T.BoxGeometry args={[7, 28, 12]} />
-		<T.MeshStandardMaterial color="#0284c7" roughness={0.2} metalness={0.4} />
+		{#if $modernTexture}
+			<T.MeshStandardMaterial map={$modernTexture} roughness={0.3} metalness={0.2} />
+		{:else}
+			<T.MeshStandardMaterial color="#0284c7" roughness={0.2} metalness={0.4} />
+		{/if}
 	</T.Mesh>
 
-	<!-- Right Buildings -->
+	<!-- Right Buildings (Kazakh Ornament Facade) -->
 	<T.Mesh position={[12, 16, zPos]}>
 		<T.BoxGeometry args={[7, 32, 12]} />
-		<T.MeshStandardMaterial color="#0f172a" roughness={0.2} metalness={0.5} />
+		{#if $kazakhTexture}
+			<T.MeshStandardMaterial map={$kazakhTexture} roughness={0.3} metalness={0.2} />
+		{:else}
+			<T.MeshStandardMaterial color="#0f172a" roughness={0.2} metalness={0.5} />
+		{/if}
 	</T.Mesh>
 
 	<!-- Street Lamps Left -->
