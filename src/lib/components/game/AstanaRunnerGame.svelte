@@ -278,9 +278,9 @@
 		<!-- Camera setup for Subway Surfers perspective (elevated & tilted down for full character visibility) -->
 		<T.PerspectiveCamera 
 			makeDefault 
-			position={[0, isTurboActive ? 7.5 : 5.4, isTurboActive ? 10.5 : 8.2]} 
-			rotation.x={-0.18}
-			fov={55} 
+			position={[0, isTurboActive ? 6.5 : 4.6, isTurboActive ? 9.5 : 7.2]} 
+			rotation.x={-0.32}
+			fov={50} 
 		/>
 
 		<RoadEnvironment speed={gameState === 'PLAYING' ? (isTurboActive ? gameSpeed * 1.6 : gameSpeed) : 0} />

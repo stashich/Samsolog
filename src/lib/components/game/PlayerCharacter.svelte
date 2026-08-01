@@ -76,8 +76,9 @@
 <!-- Player Group Position & Leaning Rotations -->
 <T.Group 
 	position={[currentX, currentY + (isSliding ? 0.35 : 0.95), 0]}
+	rotation.y={Math.PI}
 	rotation.z={leanZ}
-	rotation.x={isJumping ? jumpRotationX : (isSliding ? 0.4 : 0)}
+	rotation.x={isJumping ? -jumpRotationX : (isSliding ? -0.4 : 0)}
 >
 	<!-- Torso / Kazakh Flag Blue Runner Jacket -->
 	<T.Mesh
